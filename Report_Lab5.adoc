@@ -50,10 +50,6 @@ int main()
 ----
 bool Delay_ST(uint32_t period)
 {
-  RCC::CR::HSEON::On::Set();
-  while(RCC::CR::HSERDY::NotReady::IsSet());
-  RCC::CFGR::SW::Hse::Set();
-
   static bool stkEn=0;
   if(!stkEn)
   {

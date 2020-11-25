@@ -1,0 +1,100 @@
+:imagesdir: Images
+:figure-caption: Рисунок
+
+== Лабораторная работа №4
+==== Функция *main()*
+
+Частота мигания светодиодов увеличивается на 100 ms при каждом нажатии кнопки.
+
+[source, cpp]
+----
+int main()
+{
+  RCC::CR::HSEON::On::Set();
+  while(RCC::CR::HSERDY::NotReady::IsSet());
+  RCC::CFGR::SW::Hse::Set();
+  while(!RCC::CFGR::SWS::Hse::IsSet());
+  RCC::CR::HSION::Off::Set();
+
+  PortC::Enable();
+  PortA::Enable();
+  UserLeds::Enable();
+  UserButton::Enable();
+
+  uint32_t counter = 0;
+  uint32_t period= 100_ms;
+
+  for(;;)
+  {
+    if(UserButton::WasPressed())
+    {
+      counter=0;
+      period+=100_ms;
+    }
+    counter++;
+
+    if(counter*10_ms>=period)
+    {
+      counter=0;
+      UserLeds::Toggle();
+    }
+      Delay_T5(10_ms);// Delay_ST(10_ms)
+  }
+}
+----
+Используются две реализации функции задержки -- *Delay_ST ()* и *Delay_T5 ()*, использующие системный таймер и таймер TIM5 соответственно.
+
+==== Функция Delay_ST ()
+
+[source, cpp]
+----
+bool Delay_ST(uint32_t period)
+{
+  RCC::CR::HSEON::On::Set();
+  while(RCC::CR::HSERDY::NotReady::IsSet());
+  RCC::CFGR::SW::Hse::Set();
+
+  static bool stkEn=0;
+  if(!stkEn)
+  {
+    STK::CTRL::CLKSOURCE::CpuClock::Set();
+    stkEn=1;
+  }
+
+  uint32_t timerValue=8000U*period-1U;
+  STK::LOAD::Write(timerValue);
+  STK::VAL::Write(0);
+  STK::CTRL::ENABLE::Enable::Set();
+  while(STK::CTRL::COUNTFLAG::NoOverflow::IsSet());
+  STK::CTRL::ENABLE::Disable::Set();
+
+  return true;
+}
+----
+
+==== Функция Delay_T5 ()
+
+[source, cpp]
+----
+bool Delay_T5(uint32_t period)
+{
+  static bool t5En=0;
+  if(!t5En)
+  {
+    RCC::APB1ENR::TIM5EN::Enable::Set();
+    TIM5::CR1::URS::Value1::Set();
+    TIM5::PSC::Write(7999U);
+
+    t5En=1;
+  }
+
+  TIM5::ARR::Write(period-1U);
+  TIM5::CNT::Write(0);
+  TIM5::SR::UIF::NoInterruptPending::Set();
+  TIM5::CR1::CEN::Enable::Set();
+  while(TIM5::SR::UIF::NoInterruptPending::IsSet());
+  TIM5::CR1::CEN::Disable::Set();
+
+  return true;
+}
+----

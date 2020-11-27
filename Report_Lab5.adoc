@@ -85,29 +85,31 @@ bool Delay(uint32_t period)
 template<typename TIMx>
 struct APB1ENR_of
 {
-
 };
 template<>
 struct APB1ENR_of<TIM2>
 {
   using Enable= RCC::APB1ENR::TIM2EN::Enable;
+  using Disable= RCC::APB1ENR::TIM2EN::Disable;
 };
 template<>
 struct APB1ENR_of<TIM3>
 {
   using Enable= RCC::APB1ENR::TIM3EN::Enable;
+  using Disable= RCC::APB1ENR::TIM3EN::Disable;
 };
 template<>
 struct APB1ENR_of<TIM4>
 {
   using Enable= RCC::APB1ENR::TIM4EN::Enable;
+  using Disable= RCC::APB1ENR::TIM4EN::Disable;
 };
 template<>
 struct APB1ENR_of<TIM5>
 {
   using Enable= RCC::APB1ENR::TIM5EN::Enable;
+  using Disable= RCC::APB1ENR::TIM5EN::Disable;
 };
-
 template<typename TIMx, uint32_t CpuFreq>
 bool Delay_(uint32_t period)
 {

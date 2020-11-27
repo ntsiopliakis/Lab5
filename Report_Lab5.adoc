@@ -113,7 +113,7 @@ struct APB1ENR_of<TIM5>
 template<typename TIMx, uint32_t CpuFreq>
 bool Delay_(uint32_t period)
 {
-  static bool t5En=false;
+  static bool txEn=false;
   if(!txEn)
   {
     APB1ENR_of<TIMx>::Enable::Set();

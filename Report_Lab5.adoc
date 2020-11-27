@@ -8,7 +8,7 @@
 
 [source, cpp]
 ----
- using PortC = Port<GPIOC>;
+  using PortC = Port<GPIOC>;
   using PortA = Port<GPIOA>;
   using LED1pin = Pin<PortC, 5>;
   using LED2pin = Pin<PortC, 8>;

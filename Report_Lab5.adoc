@@ -114,23 +114,23 @@ template<typename TIMx, uint32_t CpuFreq>
 bool Delay_(uint32_t period)
 {
   static bool t5En=false;
-  if(!t5En)
+  if(!txEn)
   {
     APB1ENR_of<TIMx>::Enable::Set();
-    TIM5::CR1::URS::Value1::Set();
-    TIM5::PSC::Write(CpuFreq-1U);
+    TIMx::CR1::URS::Value1::Set();
+    TIMx::PSC::Write(CpuFreq-1U);
 
-    t5En=true;
+    txEn=true;
   }
 
-  TIM5::ARR::Write(period-1U);
-  TIM5::CNT::Write(0);
-  TIM5::SR::UIF::NoInterruptPending::Set();
-  TIM5::CR1::CEN::Enable::Set();
-  while(TIM5::SR::UIF::NoInterruptPending::IsSet())
+  TIMx::ARR::Write(period-1U);
+  TIMx::CNT::Write(0);
+  TIMx::SR::UIF::NoInterruptPending::Set();
+  TIMx::CR1::CEN::Enable::Set();
+  while(TIMx::SR::UIF::NoInterruptPending::IsSet())
   {
   }
-  TIM5::CR1::CEN::Disable::Set();
+  TIMx::CR1::CEN::Disable::Set();
   return true;
 }
 ----

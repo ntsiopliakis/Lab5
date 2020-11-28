@@ -16,8 +16,8 @@
   using LED4pin = Pin<PortA, 5>;
   using UserLeds = Leds<LED1pin, LED2pin, LED3pin, LED4pin>;
   using UserButton = Button< Pin< PortC, 13> >;
-  using ST=STK;
-  const uint32_t HseFreq=8000_Hz
+  const bool ST=true;
+  const uint32_t HseFreq=8000_Hz;
 
 int main()
 {
@@ -49,7 +49,9 @@ int main()
       counter=0;
       UserLeds::Toggle();
     }
-      Delay<TIM5,HseFreq>(10_ms);//Delay<ST,HseFreq>(10_ms);
+
+    Delay<TIM4,HseFreq>(10_ms);
+    //Delay<ST,HseFreq>(10_ms);
   }
 }
 ----
@@ -59,29 +61,6 @@ int main()
 
 [source, cpp]
 ----
-template<typename TIMx,uint32_t CpuFreq>
-bool Delay(uint32_t period)
-{
-
-  static bool stkEn=false;
-  if(!stkEn)
-  {
-    STK::CTRL::CLKSOURCE::CpuClock::Set();
-    stkEn=true;
-  }
-
-  uint32_t timerValue=CpuFreq*period-1U;
-  STK::LOAD::Write(timerValue);
-  STK::VAL::Write(0);
-  STK::CTRL::ENABLE::Enable::Set();
-  while(STK::CTRL::COUNTFLAG::NoOverflow::IsSet());
-  STK::CTRL::ENABLE::Disable::Set();
-
-  return true;
-}
-
-
-
 template<typename TIMx>
 struct APB1ENR_of
 {
@@ -110,14 +89,16 @@ struct APB1ENR_of<TIM5>
   using Enable= RCC::APB1ENR::TIM5EN::Enable;
   using Disable= RCC::APB1ENR::TIM5EN::Disable;
 };
+
+
 template<typename TIMx, uint32_t CpuFreq>
-bool Delay_(uint32_t period)
+bool Delay(uint32_t period)
 {
   static bool txEn=false;
   if(!txEn)
   {
     APB1ENR_of<TIMx>::Enable::Set();
-    TIMx::CR1::URS::Value1::Set();
+    TIMx::CR1::URS::OverflowEvent::Set();
     TIMx::PSC::Write(CpuFreq-1U);
 
     txEn=true;
@@ -131,6 +112,27 @@ bool Delay_(uint32_t period)
   {
   }
   TIMx::CR1::CEN::Disable::Set();
+  return true;
+}
+
+template<bool ST, uint32_t CpuFreq>
+bool Delay(uint32_t period)
+{
+
+  static bool stkEn=false;
+  if(!stkEn)
+  {
+    STK::CTRL::CLKSOURCE::CpuClock::Set();
+    stkEn=true;
+  }
+
+  uint32_t timerValue=CpuFreq*period-1U;
+  STK::LOAD::Write(timerValue);
+  STK::VAL::Write(0);
+  STK::CTRL::ENABLE::Enable::Set();
+  while(STK::CTRL::COUNTFLAG::NoOverflow::IsSet());
+  STK::CTRL::ENABLE::Disable::Set();
+
   return true;
 }
 ----

@@ -17,7 +17,7 @@
   using UserLeds = Leds<LED1pin, LED2pin, LED3pin, LED4pin>;
   using UserButton = Button< Pin< PortC, 13> >;
   const bool STIM=true;
-  const uint32_t HseFreq=8000_Hz;
+  const uint32_t HseFreq=8MHz;
 
 int main()
 {
@@ -33,29 +33,29 @@ int main()
   UserButton::Enable();
 
   uint32_t counter = 0;
-  uint32_t period= 100_ms;
+  uint32_t period= 100ms;
 
   for(;;)
   {
     if(UserButton::WasPressed())
     {
       counter=0;
-      period+=100_ms;
+      period+=100ms;
     }
     counter++;
 
-    if(counter*10_ms>=period)
+    if(counter*10ms>=period)
     {
       counter=0;
       UserLeds::Toggle();
     }
 
-    Delay<TIM4,HseFreq>(10_ms);
-    //Delay<STIM,HseFreq>(10_ms);
+    Delay<TIM4,HseFreq>(10ms);
+    //Delay<STIM,HseFreq>(10ms);
   }
 }
 ----
-Ниже описана реализация шаблонной функции задержки,  использующей системный таймер STIM и таймеры общего назначения TIM2-TIM5.
+Ниже описана реализация шаблонной функции задержки,  использующей системный таймер ST и таймеры общего назначения TIM2-TIM5.
 
 ==== Функция Delay()
 
@@ -99,8 +99,7 @@ bool Delay(uint32_t period)
   {
     APB1ENR_of<TIMx>::Enable::Set();
     TIMx::CR1::URS::OverflowEvent::Set();
-    TIMx::PSC::Write(CpuFreq-1U);
-
+    TIMx::PSC::Write(CpuFreq/1000-1U);
     txEn=true;
   }
 
@@ -126,13 +125,12 @@ bool Delay(uint32_t period)
     stkEn=true;
   }
 
-  uint32_t timerValue=CpuFreq*period-1U;
+  uint32_t timerValue=CpuFreq/1000*period-1U;
   STK::LOAD::Write(timerValue);
   STK::VAL::Write(0);
   STK::CTRL::ENABLE::Enable::Set();
   while(STK::CTRL::COUNTFLAG::NoOverflow::IsSet());
   STK::CTRL::ENABLE::Disable::Set();
-
   return true;
 }
 ----

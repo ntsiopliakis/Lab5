@@ -16,7 +16,7 @@
   using LED4pin = Pin<PortA, 5>;
   using UserLeds = Leds<LED1pin, LED2pin, LED3pin, LED4pin>;
   using UserButton = Button< Pin< PortC, 13> >;
-  const bool ST=true;
+  const bool STIM=true;
   const uint32_t HseFreq=8000_Hz;
 
 int main()
@@ -51,7 +51,7 @@ int main()
     }
 
     Delay<TIM4,HseFreq>(10_ms);
-    //Delay<ST,HseFreq>(10_ms);
+    //Delay<STIM,HseFreq>(10_ms);
   }
 }
 ----
@@ -115,7 +115,7 @@ bool Delay(uint32_t period)
   return true;
 }
 
-template<bool ST, uint32_t CpuFreq>
+template<bool STIM, uint32_t CpuFreq>
 bool Delay(uint32_t period)
 {
 
